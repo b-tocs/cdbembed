@@ -1,0 +1,2 @@
+# cdbembed
+ChromaDB Embbedding Server

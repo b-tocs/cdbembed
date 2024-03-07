@@ -41,9 +41,9 @@ class EmbeddingFunctionDefault(EmbeddingFunctionInterface):
         else:
             try:
                 result = self.emedding_function([text])
-                if result:
-                    context.set_payload(result)
-                    return result
+                if result and isinstance(result, list) and len(result) == 1:
+                    context.set_payload(result[0])
+                    return result[0]
                 else:
                     context.set_error("invalid embedding")
                     return None            

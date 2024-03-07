@@ -18,7 +18,7 @@ class ServiceHandler:
             context = Context()
             default_model = getenv("DEFAULT_MODEL")
             if default_model:
-                print("Load default model...")
+                print("Loading default model...")
                 if self.load_model(context=context, model_type="default", model_name=default_model, model_id="default"):
                     print(f"Default model loaded at startup: {default_model}")
                 else:
@@ -156,8 +156,8 @@ class ServiceHandler:
 
             # get embedding
             result = emb_function.get_embedding(context=context, text=text)
-            if result and isinstance(result, list) and len(result) == 1:
-                context.set_payload(result[0])
+            if result and isinstance(result, list) and len(result) > 0:
+                context.set_payload(result)
                 return True
             else:
                 context.set_error("invalid embedding detected")

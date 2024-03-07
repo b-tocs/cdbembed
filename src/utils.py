@@ -12,6 +12,17 @@ def getenv(name:str, default=None, desc: str = None, console_out: bool = True):
             print(f"Description: {desc}")
     return result
 
+def getenv_as_int(name:str, default=None, desc: str = None, console_out: bool = True) -> int:
+    try:
+        result = getenv(name=name, default=None, desc=desc, console_out=console_out)
+        if result:
+            int_val = int(result)
+            return int_val
+        else:
+            return default
+    except Exception as exc:
+        return default
+
 class Context:
     def __init__(self, message: str = None, reason: str = None, status_code: int = None) -> None:
         self.message: str = message

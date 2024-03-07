@@ -10,7 +10,7 @@ Factory.get_service_handler().startup()
 
 
 # ======================= FastAPI Methods
-@app.get("/models")
+@app.get("/models", tags=["model"])
 async def get_loaded_models():
     context = Factory.new_context()
     handler = Factory.get_service_handler()
@@ -26,7 +26,7 @@ class LoadModelInput(BaseModel):
     id: str = None
     parameters: dict = {}
 
-@app.post("/model_load")
+@app.post("/model_load", tags=["model"])
 async def load_model(data: LoadModelInput):
     context = Factory.new_context()
     handler = Factory.get_service_handler()
@@ -42,7 +42,30 @@ class EmbedModelInput(BaseModel):
     name: str = "default"
 
 
-@app.post("/embedding")
+class UnloadModelInput(BaseModel):
+    type: str = "default"
+    name: str = "default"
+    id: str = None
+
+@app.post("/model_unload", tags=["model"])
+async def unload_model(data: UnloadModelInput):
+    context = Factory.new_context()
+    handler = Factory.get_service_handler()
+    if handler.unload_model(context=context, model_type=data.type, model_name=data.name, model_id=data.id):
+        return context.create_success_message()
+    else:
+        return context.create_error_message()
+    
+@app.post("/models_unload_all", tags=["model"])
+async def unload_all_models():
+    context = Factory.new_context()
+    handler = Factory.get_service_handler()
+    if handler.unload_all(context=context):
+        return context.create_success_message()
+    else:
+        return context.create_error_message()    
+
+@app.post("/embedding", tags=["embedding"])
 async def get_embedding(data: EmbedModelInput):
     context = Factory.new_context()
     handler = Factory.get_service_handler()
@@ -55,7 +78,7 @@ class EmbedModelOllamaInput(BaseModel):
     model: str
     prompt: str
 
-@app.post("/embeddings")
+@app.post("/embeddings", tags=["embedding"])
 async def get_embedding_ollama(data: EmbedModelOllamaInput):
     """get embedding in ollama format
 
@@ -74,28 +97,17 @@ async def get_embedding_ollama(data: EmbedModelOllamaInput):
         return context.create_error_message()    
 
 
-class UnloadModelInput(BaseModel):
-    type: str = "default"
-    name: str = "default"
-    id: str = None
 
-@app.post("/model_unload")
-async def unload_model(data: UnloadModelInput):
+@app.get("/documents_count", tags=["vectordb"])
+async def count_documents():
     context = Factory.new_context()
     handler = Factory.get_service_handler()
-    if handler.unload_model(context=context, model_type=data.type, model_name=data.name, model_id=data.id):
-        return context.create_success_message()
-    else:
+    result = handler.documemts_count(context)
+    if result is None:
         return context.create_error_message()
-    
-@app.post("/models_unload_all")
-async def unload_all_models():
-    context = Factory.new_context()
-    handler = Factory.get_service_handler()
-    if handler.unload_all(context=context):
-        return context.create_success_message()
-    else:
-        return context.create_error_message()    
+    else: 
+        return result
+
 
 # ======================= StartUp
 if __name__ == "__main__":

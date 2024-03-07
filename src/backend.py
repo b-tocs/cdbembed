@@ -1,7 +1,8 @@
-from interfaces import EmbeddingFunctionInterface
+from interfaces import EmbeddingFunctionInterface, VectorDBInterface
 from utils import Context, getenv
 from chroma import EmbeddingFunctionDefault
 from ollama_client import EmbeddingFunctionOllama
+from chroma_server import ChromaDBServer
     
 
 class ServiceHandler:
@@ -11,6 +12,7 @@ class ServiceHandler:
 
     def __init__(self) -> None:
         self._model_cache:dict[str, EmbeddingFunctionInterface] = {}
+        self.vdb_server: VectorDBInterface = None
 
     def startup(self):
         try:
@@ -31,7 +33,27 @@ class ServiceHandler:
                 if self.load_model(context=context, model_type="ollama", model_name=ollama_model, model_id="ollama", parameters={"url": ollama_url}):
                     print(f"Ollama proxy loaded at startup: url {ollama_url} model {ollama_model}")
                 else:
-                    print(f"Loading ollama proxy to {ollama_url} at startup failed")                
+                    print(f"Loading ollama proxy to {ollama_url} at startup failed")      
+
+            # check ChromaDB
+            chromadb_host = getenv("CHROMADB_HOST")
+            chromadb_port = getenv("CHROMADB_PORT")
+            chromadb_coll = getenv("CHROMADB_COLLECTION", "default")
+            chromadb_emb  = getenv("CHROMADB_EMBEDDING", "default")
+            chromadb_dbs  = getenv("CHROMADB_DATABASE", "default_database")
+            chromadb_ten  = getenv("CHROMADB_TENANT","default_tenant")
+
+            if chromadb_host:
+                try:
+                    port = int(chromadb_port)
+                    if port:
+                        cdb_server = ChromaDBServer(host=chromadb_host, port=port, collection=chromadb_coll, parameters={"database": chromadb_dbs, "tenant": chromadb_ten, "embedding": chromadb_emb})
+                        if cdb_server.is_valid():
+                            self.vdb_server = cdb_server
+                except Exception as exc:
+                    print(f"Error connecting to chroma server: {exc}")
+
+                                 
 
         except Exception as exc:
             print(f"Error while checking environment parameters at startup: {exc}")
@@ -165,7 +187,43 @@ class ServiceHandler:
 
         except Exception as exc:
             context.set_error(f"Error: {exc}")
+        
+    def documents_query(self, context: Context, max_records: int = 5, document: str = None, embedding: list = None, metatdata: dict = {}) -> bool:
+        try:
+            if not self.vdb_server:
+                context.set_error("no vector engine connected")
+                return False
 
+            return self.vdb_server.count(context)
+
+        except Exception as exc:
+            context.set_error(f"Error: {exc}")
+            return False
+    
+    def document_learn(self, context: Context, id: str, document: str = None, embedding: list = None, uri: str = None, metatdata: dict = {}) -> bool:
+        try:
+            if not self.vdb_server:
+                context.set_error("no vector engine connected")
+                return False
+
+            return self.vdb_server.count(context)
+
+        except Exception as exc:
+            context.set_error(f"Error: {exc}")
+            return False
+    
+
+    def documemts_count(self, context: Context) -> bool:
+        try:
+            if not self.vdb_server:
+                context.set_error("no vector engine connected")
+                return False
+
+            return self.vdb_server.count(context)
+
+        except Exception as exc:
+            context.set_error(f"Error: {exc}")
+            return False
 
 
 class Factory:

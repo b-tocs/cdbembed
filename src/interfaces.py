@@ -21,3 +21,24 @@ class EmbeddingFunctionInterface:
     def get_embedding(self, context: Context, text: str) -> list:
         context.set_error("abstract interface used")
         return None
+
+
+class VectorDBInterface:
+    def __init__(self, host: str = None, port: int = None, url: str = None, collection: str = "default", parameters: dict = {}) -> None:
+        self.host: str = host
+        self.port: int = port
+        self.url: str = url
+        self.collection: str = collection
+        self.parameters: dict = {}
+        
+    def is_valid(self) -> bool:
+        return False
+    
+    def learn_document(self, context: Context, id: str, document: str = None, embedding: list = None, uri: str = None, metatdata: dict = {}) -> bool:
+        return False
+    
+    def query_document(self, context: Context, max_records: int = 5, document: str = None, embedding: list = None, metatdata: dict = {}) -> bool:
+        return False
+    
+    def count(self, context: Context) -> bool:
+        return False

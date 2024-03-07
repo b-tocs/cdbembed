@@ -9,11 +9,6 @@ app = FastAPI()
 
 
 # ======================= FastAPI Methods
-@app.get("/info")
-async def root():
-    return {"message": "Hello World"}
-
-
 @app.get("/models")
 async def get_loaded_models():
     context = Factory.new_context()
@@ -76,8 +71,6 @@ async def get_embedding_ollama(data: EmbedModelOllamaInput):
         return context.create_success_message()
     else:
         return context.create_error_message()    
-
-
 
 
 class UnloadModelInput(BaseModel):

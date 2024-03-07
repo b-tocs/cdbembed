@@ -54,7 +54,7 @@ class ServiceHandler:
         else:
             return None
 
-    def unload_model(self, context: Context, model_type: str, model_name: str, model_id: str = None) -> bool:
+    def unload_model(self, context: Context, model_type: str, model_name: str, model_id: str = None, delete_cache: bool = True) -> bool:
         use_model_id = self.get_model_id(model_type=model_type, model_name=model_name, model_id=model_id)
         if not use_model_id in self._model_cache:
             context.set_error("model not loaded", status_code=400)
@@ -62,16 +62,18 @@ class ServiceHandler:
         else:
             emb_func = self.get_embedding_function_by_id(use_model_id)
             emb_func.unload()
-            del self._model_cache[use_model_id]
+            if delete_cache:
+                del self._model_cache[use_model_id]
             return True
 
     def unload_all(self, context: Context) -> True:
         count = 0
         all_ids = self._model_cache.keys()
         for model_id in all_ids:
-            self.unload_model(context, "", "", model_id=model_id)
+            self.unload_model(context, "", "", model_id=model_id, delete_cache=False)
             count += 1
         context.set_success(f"{count} models unloaded")
+        self._model_cache = {}
         return True
 
     def load_model(self, context: Context, model_type: str, model_name: str, model_id: str = None, parameters: dict = {}) -> bool:

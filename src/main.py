@@ -130,6 +130,22 @@ async def learn_document(data: DocumentUpsertInput):
     else: 
         return result
 
+class DocumentQueryInput(BaseModel):
+    max_records: int = 5
+    document: str
+    embedding: list = None
+    metadata: dict = {}
+
+@app.post("/document_query", tags=["vectordb"])
+async def learn_document(data: DocumentQueryInput):
+    context = Factory.new_context()
+    handler = Factory.get_service_handler()
+    result = handler.documents_query(context=context, max_records=data.max_records, document=data.document, embedding=data.embedding, metadata=data.metadata)
+    if result is None:
+        return context.create_error_message()
+    else: 
+        return result
+
 # ======================= StartUp
 if __name__ == "__main__":
     uvicorn.run(app, port=getenv_as_int("REST_API_PORT", 8000), host=getenv("REST_API_HOST", "0.0.0.0"))

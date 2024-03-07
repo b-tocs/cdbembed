@@ -188,13 +188,30 @@ class ServiceHandler:
         except Exception as exc:
             context.set_error(f"Error: {exc}")
         
-    def documents_query(self, context: Context, max_records: int = 5, document: str = None, embedding: list = None, metatdata: dict = {}) -> bool:
+    def documents_query(self, context: Context, max_records: int = 5, document: str = None, embedding: list = None, metadata: dict = {}) -> bool:
         try:
             if not self.vdb_server:
                 context.set_error("no vector engine connected")
                 return False
+            
+            if not embedding and not document:
+                context.set_error("document or embedding required")
+                return False
 
-            return self.vdb_server.count(context)
+            # check embedding
+            if not embedding:
+                emb_name = self.vdb_server.get_embedding_name()
+                emb_func = self.get_embedding_function_by_id(emb_name)
+                if not emb_func:
+                    context.set_error(f"valid embedding required - {emb_name} invalid")
+                    return False
+
+                embedding = emb_func.get_embedding(context=context, text=document)
+                if not embedding:
+                    context.set_error(f"embedding genearation failed")
+                    return False
+
+            return self.vdb_server.query_document(context=context, max_records=max_records, embedding=embedding, metadata=metadata)
 
         except Exception as exc:
             context.set_error(f"Error: {exc}")

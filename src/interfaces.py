@@ -34,10 +34,10 @@ class VectorDBInterface:
     def is_valid(self) -> bool:
         return False
     
-    def learn_document(self, context: Context, id: str, document: str = None, embedding: list = None, uri: str = None, metatdata: dict = {}) -> bool:
+    def learn_document(self, context: Context, id: str, document: str = None, embedding: list = None, uri: str = None, metadata: dict = {}) -> bool:
         return False
     
-    def query_document(self, context: Context, max_records: int = 5, document: str = None, embedding: list = None, metadata: dict = {}) -> bool:
+    def query_document(self, context: Context, max_records: int = 5, embedding: list = None, metadata: dict = None) -> bool:
         return False
     
     def count(self, context: Context) -> bool:

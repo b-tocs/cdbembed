@@ -55,7 +55,7 @@ class ChromaDBServer(VectorDBInterface):
             if uri:
                 uris = [uri]
 
-            # leran
+            # learn
             self.cdb_collection.upsert(
                 documents=[document],
                 metadatas=metadatas,
@@ -67,3 +67,21 @@ class ChromaDBServer(VectorDBInterface):
         except Exception as exc:
             context.set_error(f"Learning document failed - {exc}")
             return False
+
+    def query_document(self, context: Context, max_records: int = 5, embedding: list = None, metadata: dict = None) -> bool:
+        try:
+            # prepare
+            include = ["documents", "metadatas"]
+
+
+            # query
+            result = self.cdb_collection.query(
+                n_results=max_records,
+                query_embeddings=embedding,
+                where=metadata,
+                include=include
+            )
+            return result
+        except Exception as exc:
+            context.set_error(f"Learning document failed - {exc}")
+            return False        

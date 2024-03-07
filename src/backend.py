@@ -1,17 +1,41 @@
 from interfaces import EmbeddingFunctionInterface
-from utils import Context
+from utils import Context, getenv
 from chroma import EmbeddingFunctionDefault
 from ollama_client import EmbeddingFunctionOllama
     
 
 class ServiceHandler:
-    VALID_TYPES = ["default"]
+    TYPE_DEFAULT = "default"
+    TYPE_OLLAMA  = "ollama"
+    VALID_TYPES = [TYPE_DEFAULT, TYPE_OLLAMA]
 
     def __init__(self) -> None:
         self._model_cache:dict[str, EmbeddingFunctionInterface] = {}
 
     def startup(self):
-        pass
+        try:
+            # check for default model
+            context = Context()
+            default_model = getenv("DEFAULT_MODEL")
+            if default_model:
+                print("Load default model...")
+                if self.load_model(context=context, model_type="default", model_name=default_model, model_id="default"):
+                    print(f"Default model loaded at startup: {default_model}")
+                else:
+                    print(f"Loading default model {default_model} at startup failed")
+
+            # check ollama
+            ollama_url = getenv("OLLAMA_URL")
+            ollama_model = getenv("OLLAMA_MODEL")
+            if ollama_model and ollama_url:
+                if self.load_model(context=context, model_type="ollama", model_name=ollama_model, model_id="ollama", parameters={"url": ollama_url}):
+                    print(f"Ollama proxy loaded at startup: url {ollama_url} model {ollama_model}")
+                else:
+                    print(f"Loading ollama proxy to {ollama_url} at startup failed")                
+
+        except Exception as exc:
+            print(f"Error while checking environment parameters at startup: {exc}")
+
 
     def get_model_id(self, model_type: str, model_name: str, model_id: str = None) -> str:
         """generates a unique model id for internal cache

@@ -10,7 +10,7 @@ class EmbeddingFunctionOllama(EmbeddingFunctionInterface):
         super().__init__(type_desc="Ollama Embedding Proxy", model_name=model_name, parameters=parameters)
         if model_name == "default":
             self.model_name = self.DEFAULT_EMB_MODEL
-            self.url: str = None
+            self.url: str = parameters.get("url", None)
     
     def load(self, context: Context) -> bool:        
         if not self.model_name or not self.url:

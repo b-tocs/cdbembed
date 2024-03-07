@@ -3,3 +3,4 @@ uvicorn
 fastapi
 chromadb-client
 sentence-transformers
+python-dotenv

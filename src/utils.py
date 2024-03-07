@@ -7,7 +7,7 @@ def getenv(name:str, default=None, desc: str = None, console_out: bool = True):
     if result is None:
         result = default
     if console_out:
-        print(f"Check environment param {name}: value {result} determined")
+        print(f"Check environment param '{name}': value '{result}' determined")
         if desc:
             print(f"Description: {desc}")
     return result

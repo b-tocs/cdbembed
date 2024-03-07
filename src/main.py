@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from backend import Factory, ServiceHandler
 from pydantic import BaseModel
+from utils import getenv, getenv_as_int
 
 
 # ======================= FastAPI Configuration
@@ -10,6 +11,7 @@ Factory.get_service_handler().startup()
 
 
 # ======================= FastAPI Methods
+# -------------- Model
 @app.get("/models", tags=["model"])
 async def get_loaded_models():
     context = Factory.new_context()
@@ -65,6 +67,8 @@ async def unload_all_models():
     else:
         return context.create_error_message()    
 
+
+# -------------- Embedding
 @app.post("/embedding", tags=["embedding"])
 async def get_embedding(data: EmbedModelInput):
     context = Factory.new_context()
@@ -97,7 +101,7 @@ async def get_embedding_ollama(data: EmbedModelOllamaInput):
         return context.create_error_message()    
 
 
-
+# -------------- Documents vectordb
 @app.get("/documents_count", tags=["vectordb"])
 async def count_documents():
     context = Factory.new_context()
@@ -111,4 +115,4 @@ async def count_documents():
 
 # ======================= StartUp
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000, host="0.0.0.0")
+    uvicorn.run(app, port=getenv_as_int("REST_API_PORT", 8000), host=getenv("REST_API_HOST", "0.0.0.0"))

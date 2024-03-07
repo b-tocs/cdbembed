@@ -12,10 +12,13 @@ def getenv(name:str, default=None, desc: str = None, console_out: bool = True):
             print(f"Description: {desc}")
     return result
 
-def getenv_as_int(name:str, default=None, desc: str = None, console_out: bool = True) -> int:
+def getenv_as_int(name:str, default: int = None, desc: str = None, console_out: bool = True) -> int:
     try:
-        result = getenv(name=name, default=None, desc=desc, console_out=console_out)
+        result = getenv(name=name, default=default, desc=desc, console_out=console_out)
         if result:
+            if isinstance(result, int):
+                return result
+            
             int_val = int(result)
             return int_val
         else:

@@ -81,7 +81,36 @@ class ChromaDBServer(VectorDBInterface):
                 where=metadata,
                 include=include
             )
-            return result
+
+            if not result or not "ids" in result:
+                context.set_error(f"vectordb embedding query failed - invalid result")
+                return False
+
+            # transform results
+            records = []
+            ids = result["ids"][0]
+            docs = result["documents"][0]
+            metas = result["metadatas"][0]
+            uris = None
+            if "uris" in result:
+                uris = result["uris"]
+                if uris and isinstance(uris, list):
+                    uris = result["uris"][0]
+
+            count = len(ids)
+            current = 0
+            while current < count:
+                record = {
+                   "id": ids[current],
+                   "document": docs[current],
+                   "metadata": metas[current]     
+                }
+                if uris:
+                    record["uri"] = uris[current]
+                records.append(record)
+                current += 1
+
+            return records
         except Exception as exc:
             context.set_error(f"Learning document failed - {exc}")
             return False        

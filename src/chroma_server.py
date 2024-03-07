@@ -39,3 +39,31 @@ class ChromaDBServer(VectorDBInterface):
         
     def count(self, context: Context) -> bool:
         return self.cdb_collection.count()
+    
+
+    def learn_document(self, context: Context, id: str, document: str = None, embedding: list = None, uri: str = None, metadata: dict = ...) -> bool:
+        try:
+            embeddings = None
+            if embedding:
+                embeddings = [embedding]
+
+            metadatas = None
+            if metadata:
+                metadatas = [metadata]
+
+            uris = None
+            if uri:
+                uris = [uri]
+
+            # leran
+            self.cdb_collection.upsert(
+                documents=[document],
+                metadatas=metadatas,
+                uris=uris,
+                embeddings=embeddings,
+                ids=[id]
+            )
+            return True
+        except Exception as exc:
+            context.set_error(f"Learning document failed - {exc}")
+            return False

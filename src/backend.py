@@ -202,11 +202,35 @@ class ServiceHandler:
     
     def document_learn(self, context: Context, id: str, document: str = None, embedding: list = None, uri: str = None, metatdata: dict = {}) -> bool:
         try:
+            # check
             if not self.vdb_server:
                 context.set_error("no vector engine connected")
                 return False
 
-            return self.vdb_server.count(context)
+            if not id:
+                context.set_error("id required")
+                return False
+
+            if not embedding and not document:
+                context.set_error("document or embedding required")
+                return False
+
+            # check embedding
+            if not embedding:
+                emb_name = self.vdb_server.get_embedding_name()
+                emb_func = self.get_embedding_function_by_id(emb_name)
+                if not emb_func:
+                    context.set_error(f"valid embedding required - {emb_name} invalid")
+                    return False
+
+                embedding = emb_func.get_embedding(context=context, text=document)
+                if not embedding:
+                    context.set_error(f"embedding genearation failed")
+                    return False
+                
+
+            # learn with embedding
+            return self.vdb_server.learn_document(context=context, id=id, document=document, embedding=embedding, uri=uri, metadata=metatdata)
 
         except Exception as exc:
             context.set_error(f"Error: {exc}")

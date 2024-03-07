@@ -113,6 +113,23 @@ async def count_documents():
         return result
 
 
+class DocumentUpsertInput(BaseModel):
+    id: str
+    document: str
+    uri: str = None
+    metadata: dict = {}
+    embedding: list = None
+
+@app.post("/document_learn", tags=["vectordb"])
+async def learn_document(data: DocumentUpsertInput):
+    context = Factory.new_context()
+    handler = Factory.get_service_handler()
+    result = handler.document_learn(context=context, id=data.id, document=data.document, embedding=data.embedding, uri=data.uri, metatdata=data.metadata)
+    if result is None:
+        return context.create_error_message()
+    else: 
+        return result
+
 # ======================= StartUp
 if __name__ == "__main__":
     uvicorn.run(app, port=getenv_as_int("REST_API_PORT", 8000), host=getenv("REST_API_HOST", "0.0.0.0"))

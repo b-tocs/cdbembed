@@ -1,76 +1,7 @@
-from chromadb.utils import embedding_functions
-from chromadb import EmbeddingFunction
-from fastapi.responses import HTMLResponse 
-import json
-
-class Context:
-    def __init__(self, message: str = None, reason: str = None, status_code: int = None) -> None:
-        self.message: str = message
-        self.reason: str = reason
-        self.status_code: int = status_code
-
-
-    def set_error(self, reason: str, status_code: int = 400):
-        self.reason = reason
-        self.status_code = status_code
-
-    def set_success(self, message: str, reason: str = None, status_code: int = None):
-        self.message = message
-        self.reason  = reason
-        if status_code:
-            self.status_code = status_code
-
-    def create_success_messaga(self):
-        message = self.message
-        if not message:
-            message = 'OK'
-        return {
-            "message": message
-        }    
-
-    def create_error_messaga(self):
-        reason = "unnown error"
-        if self.reason:
-            reason = self.reason
-
-        message = self.message
-        if not message:
-            message = self.reason
-        
-        status = 400
-        if self.status_code:
-            status = self.status_code
-
-        payload = json.dumps({
-            "message": message
-        })    
-
-        return HTMLResponse(content=payload, status_code=status)
-
-
-class EmbeddingFunctionInterface:
-    def __init__(self, type_desc: str, model_desc: str) -> None:
-        self.model_text = model_desc
-        self.type_text  = type_desc
-
-    def get_description(self) -> str:
-        return f"Embedding Function type '{self.type_text}' model '{self.model_text}'"    
+from interfaces import EmbeddingFunctionInterface
+from utils import Context
+from chromadb import EmbeddingFunctionDefault
     
-    def unload(self) -> bool:
-        True
-
-class EmbeddingFunctionDefault(EmbeddingFunctionInterface):
-
-    DEFAULT_EMB_MODEL   = "all-MiniLM-L6-v2"
-
-    def __init__(self, embedding_function: EmbeddingFunction, model_name: str = "default") -> None:
-        super().__init__(type_desc="ChromaDB sentence transformer", model_desc=model_name)
-        if model_name == "default":
-            self.model_text = self.DEFAULT_EMB_MODEL
-
-        self.emedding_function = embedding_function
-    
-
 
 class ServiceHandler:
     VALID_TYPES = ["default"]
@@ -114,6 +45,7 @@ class ServiceHandler:
                 "description": emb_function.get_description()
             }   
             result.append(record)
+        context.set_payload(result)
         return result
 
     def get_embedding_function_by_id(self, model_id: str) -> EmbeddingFunctionInterface:
@@ -148,17 +80,19 @@ class ServiceHandler:
                 context.set_error(f"invalid model type: {model_type}")
                 return False
             
-            # load model
+            # set embedding by type
             emb_function: EmbeddingFunctionInterface = None
             if model_type == "default":
-                default_emb = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=model_name)
-                if default_emb:
-                    emb_function = EmbeddingFunctionDefault(embedding_function=default_emb, model_name=model_name)
-            
-            # check 
+                emb_function = EmbeddingFunctionDefault(model_name=model_name)
+                
+            # check and load model
             if not emb_function:
-                context.set_error(f"invalid embedding functin: loader type {model_type} model name {model_name}")
+                context.set_error(f"invalid embedding function: loader type {model_type} model name {model_name}")
                 return False
+            else:
+                if not emb_function.load(context=context):
+                    context.set_error(reason="Loading model failed")
+                    return False
 
             # get the model id
             use_model_id = self.get_model_id(model_type=model_type, model_name=model_name, model_id=model_id)
@@ -167,7 +101,6 @@ class ServiceHandler:
 
         except Exception as exc:
             context.set_error(f"Error: {exc}")
-
 
 
 class Factory:

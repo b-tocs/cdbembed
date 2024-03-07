@@ -1,6 +1,7 @@
 from interfaces import EmbeddingFunctionInterface
 from utils import Context
 from chroma import EmbeddingFunctionDefault
+from ollama_client import EmbeddingFunctionOllama
     
 
 class ServiceHandler:
@@ -9,6 +10,8 @@ class ServiceHandler:
     def __init__(self) -> None:
         self._model_cache:dict[str, EmbeddingFunctionInterface] = {}
 
+    def startup(self):
+        pass
 
     def get_model_id(self, model_type: str, model_name: str, model_id: str = None) -> str:
         """generates a unique model id for internal cache
@@ -91,6 +94,8 @@ class ServiceHandler:
             emb_function: EmbeddingFunctionInterface = None
             if model_type == "default":
                 emb_function = EmbeddingFunctionDefault(model_name=model_name)
+            elif model_type == "ollama":
+                emb_function = EmbeddingFunctionOllama(model_name=model_name, parameters=parameters)
                 
             # check and load model
             if not emb_function:

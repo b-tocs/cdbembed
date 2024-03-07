@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 # ======================= FastAPI Configuration
 app = FastAPI()
+Factory.get_service_handler().startup()
 
 
 # ======================= FastAPI Methods

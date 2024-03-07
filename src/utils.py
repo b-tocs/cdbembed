@@ -1,5 +1,16 @@
 from fastapi.responses import HTMLResponse 
 import json
+import os
+
+def getenv(name:str, default=None, desc: str = None, console_out: bool = True):
+    result = os.getenv(name, None)
+    if result is None:
+        result = default
+    if console_out:
+        print(f"Check environment param {name}: value {result} determined")
+        if desc:
+            print(f"Description: {desc}")
+    return result
 
 class Context:
     def __init__(self, message: str = None, reason: str = None, status_code: int = None) -> None:

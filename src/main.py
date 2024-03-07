@@ -137,7 +137,7 @@ class DocumentQueryInput(BaseModel):
     metadata: dict = {}
 
 @app.post("/document_query", tags=["vectordb"])
-async def learn_document(data: DocumentQueryInput):
+async def query_document(data: DocumentQueryInput):
     context = Factory.new_context()
     handler = Factory.get_service_handler()
     result = handler.documents_query(context=context, max_records=data.max_records, document=data.document, embedding=data.embedding, metadata=data.metadata)

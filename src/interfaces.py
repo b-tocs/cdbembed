@@ -29,7 +29,7 @@ class VectorDBInterface:
         self.port: int = port
         self.url: str = url
         self.collection: str = collection
-        self.parameters: dict = {}
+        self.parameters: dict = parameters
         
     def is_valid(self) -> bool:
         return False

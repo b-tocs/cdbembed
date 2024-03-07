@@ -4,7 +4,7 @@ from utils import Context
 
 class ChromaDBServer(VectorDBInterface):
 
-    def __init__(self, host: str = None, port: int = None, url: str = None, collection: str = "default", parameters: dict = ...) -> None:
+    def __init__(self, host: str = None, port: int = None, url: str = None, collection: str = "default", parameters: dict = {}) -> None:
         super().__init__(host, port, url, collection, parameters)
         self.cdb_client: HttpClient = None
         self.cdb_collection: Collection = None
@@ -22,7 +22,7 @@ class ChromaDBServer(VectorDBInterface):
             coll_name = self.collection
             if not coll_name:
                 coll_name = "default"
-            
+
             coll = client.get_or_create_collection(coll_name)
             if not coll:
                 return False
@@ -30,7 +30,7 @@ class ChromaDBServer(VectorDBInterface):
             self.cdb_client = client
             self.cdb_collection = coll
             self.collection = coll_name
-            print(f"Connected to chromadb {self.host}:{self.port}/{self.collection}")
+            print(f"Connected to chromadb {self.host}:{self.port}/{self.collection} - embbedding {self.get_embedding_name()}")
             return True
 
         except Exception as exc:
@@ -40,6 +40,8 @@ class ChromaDBServer(VectorDBInterface):
     def count(self, context: Context) -> bool:
         return self.cdb_collection.count()
     
+    def get_embedding_name(self) -> str:
+        return self.parameters.get("embedding", None)
 
     def learn_document(self, context: Context, id: str, document: str = None, embedding: list = None, uri: str = None, metadata: dict = ...) -> bool:
         try:

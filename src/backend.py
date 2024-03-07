@@ -1,5 +1,5 @@
 from interfaces import EmbeddingFunctionInterface, VectorDBInterface
-from utils import Context, getenv
+from utils import Context, getenv, getenv_as_int
 from chroma import EmbeddingFunctionDefault
 from ollama_client import EmbeddingFunctionOllama
 from chroma_server import ChromaDBServer
@@ -7,14 +7,17 @@ from chroma_server import ChromaDBServer
 
 class ServiceHandler:
     TYPE_DEFAULT = "default"
+    TYPE_CHROMADB  = "chromadb"
     TYPE_OLLAMA  = "ollama"
+
     VALID_TYPES = [TYPE_DEFAULT, TYPE_OLLAMA]
+    VECTORDB_TYPES = [TYPE_DEFAULT, TYPE_CHROMADB]
 
     def __init__(self) -> None:
         self._model_cache:dict[str, EmbeddingFunctionInterface] = {}
         self.vdb_server: VectorDBInterface = None
 
-    def startup(self):
+    def startup(self) -> bool:
         try:
             # check for default model
             context = Context()
@@ -35,26 +38,31 @@ class ServiceHandler:
                 else:
                     print(f"Loading ollama proxy to {ollama_url} at startup failed")      
 
-            # check ChromaDB
-            chromadb_host = getenv("CHROMADB_HOST")
-            chromadb_port = getenv("CHROMADB_PORT")
-            chromadb_coll = getenv("CHROMADB_COLLECTION", "default")
-            chromadb_emb  = getenv("CHROMADB_EMBEDDING", "default")
-            chromadb_dbs  = getenv("CHROMADB_DATABASE", "default_database")
-            chromadb_ten  = getenv("CHROMADB_TENANT","default_tenant")
+            # check VectorDB
+            vdb_type = getenv("VECTORDB_TYPE")                    
+            vdb_host = getenv("VECTORDB_HOST")
+            vdb_port = getenv_as_int("VECTORDB_PORT")
+            vdb_coll = getenv("VECTORDB_COLLECTION", "default")
+            vdb_emb  = getenv("VECTORDB_EMBEDDING", "default")
+            vdb_dbs  = getenv("VECTORDB_DATABASE", "default_database")
+            vdb_ten  = getenv("VECTORDB_TENANT","default_tenant")
 
-            if chromadb_host:
-                try:
-                    port = int(chromadb_port)
-                    if port:
-                        cdb_server = ChromaDBServer(host=chromadb_host, port=port, collection=chromadb_coll, parameters={"database": chromadb_dbs, "tenant": chromadb_ten, "embedding": chromadb_emb})
-                        if cdb_server.is_valid():
-                            self.vdb_server = cdb_server
-                except Exception as exc:
-                    print(f"Error connecting to chroma server: {exc}")
-
-                                 
-
+            # init vdb istance
+            vdb_server: VectorDBInterface = None
+            if vdb_type:
+                if vdb_type not in self.VECTORDB_TYPES:
+                    print("invalid vectordb type - valid values: ", self.VECTORDB_TYPES)
+                elif vdb_type == self.TYPE_DEFAULT or vdb_type == self.TYPE_CHROMADB:
+                    if vdb_port:
+                        vdb_server = ChromaDBServer(host=vdb_host, port=vdb_port, collection=vdb_coll, parameters={"database": vdb_dbs, "tenant": vdb_ten, "embedding": vdb_emb})
+            
+            if not vdb_server or not vdb_server.is_valid():
+                print("connect to vector database failed")
+                return False
+            else:       
+                self.vdb_server = vdb_server
+                print("VectorDB connected.")     
+                return True           
         except Exception as exc:
             print(f"Error while checking environment parameters at startup: {exc}")
 

@@ -1,9 +1,10 @@
 from utils import Context
 class EmbeddingFunctionInterface:
-    def __init__(self, type_desc: str, model_name: str, model_desc: str = None) -> None:
+    def __init__(self, type_desc: str, model_name: str, model_desc: str = None, parameters: dict = {}) -> None:
         self.model_name = model_name
         self.model_desc = model_desc
         self.type_desc  = type_desc
+        self.parameters: dict = {}
         if not self.model_desc:
             self.model_desc = self.model_name
 

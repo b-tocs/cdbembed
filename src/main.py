@@ -19,24 +19,47 @@ async def get_loaded_models():
     context = Factory.new_context()
     handler = Factory.get_service_handler()
     if handler.get_loaded_models(context):
-        return context.create_success_messaga()
+        return context.create_success_message()
     else:
-        return context.create_error_messaga()
+        return context.create_error_message()
 
-class LearnModelInput(BaseModel):
+class LoadModelInput(BaseModel):
     type: str = "default"
     name: str = "default"
+    id: str = None
     parameters: dict = {}
 
 @app.post("/load_model")
-async def loaded_model(data: LearnModelInput):
+async def load_model(data: LoadModelInput):
     context = Factory.new_context()
     handler = Factory.get_service_handler()
-    if handler.load_model(context, data.type, data.name):
-        return context.create_success_messaga()
+    if handler.load_model(context=context, model_type=data.type, model_name=data.name, model_id=data.id, parameters=data.parameters):
+        return context.create_success_message()
     else:
-        return context.create_error_messaga()
+        return context.create_error_message()
 
+class UnloadModelInput(BaseModel):
+    type: str = "default"
+    name: str = "default"
+    id: str = None
+
+@app.post("/unload_model")
+async def unload_model(data: UnloadModelInput):
+    context = Factory.new_context()
+    handler = Factory.get_service_handler()
+    if handler.unload_model(context=context, model_type=data.type, model_name=data.name, model_id=data.id):
+        return context.create_success_message()
+    else:
+        return context.create_error_message()
+    
+@app.post("/unload_all")
+async def unload_all_models():
+    context = Factory.new_context()
+    handler = Factory.get_service_handler()
+    if handler.unload_all(context=context):
+        return context.create_success_message()
+    else:
+        return context.create_error_message()    
 
 # ======================= StartUp
 if __name__ == "__main__":

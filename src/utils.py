@@ -21,7 +21,7 @@ class Context:
         if status_code:
             self.status_code = status_code
 
-    def create_success_messaga(self):
+    def create_success_message(self):
         if self.payload is not None:
             return self.payload
         
@@ -32,7 +32,7 @@ class Context:
             "message": message
         }    
 
-    def create_error_messaga(self):
+    def create_error_message(self):
         reason = "unnown error"
         if self.reason:
             reason = self.reason

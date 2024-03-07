@@ -97,6 +97,7 @@ class ServiceHandler:
             # get the model id
             use_model_id = self.get_model_id(model_type=model_type, model_name=model_name, model_id=model_id)
             self._model_cache[use_model_id] = emb_function
+            context.set_success(f"model loaded as id {use_model_id}")
             return True
 
         except Exception as exc:

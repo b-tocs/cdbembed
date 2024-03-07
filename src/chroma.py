@@ -8,8 +8,8 @@ class EmbeddingFunctionDefault(EmbeddingFunctionInterface):
 
     DEFAULT_EMB_MODEL   = "all-MiniLM-L6-v2"
 
-    def __init__(self, model_name: str = "default", embedding_function: EmbeddingFunction = None) -> None:
-        super().__init__(type_desc="ChromaDB sentence transformer", model_name=model_name)
+    def __init__(self, model_name: str = "default", embedding_function: EmbeddingFunction = None, parameters: dict = {}) -> None:
+        super().__init__(type_desc="ChromaDB sentence transformer", model_name=model_name, parameters=parameters)
         if model_name == "default":
             self.model_name = self.DEFAULT_EMB_MODEL
 

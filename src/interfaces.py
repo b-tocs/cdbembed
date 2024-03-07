@@ -1,4 +1,4 @@
-
+from utils import Context
 class EmbeddingFunctionInterface:
     def __init__(self, type_desc: str, model_name: str, model_desc: str = None) -> None:
         self.model_name = model_name

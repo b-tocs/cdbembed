@@ -1,6 +1,6 @@
 from interfaces import EmbeddingFunctionInterface
 from utils import Context
-from chromadb import EmbeddingFunctionDefault
+from chroma import EmbeddingFunctionDefault
     
 
 class ServiceHandler:

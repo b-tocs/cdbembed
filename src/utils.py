@@ -22,7 +22,7 @@ class Context:
             self.status_code = status_code
 
     def create_success_messaga(self):
-        if self.payload:
+        if self.payload is not None:
             return self.payload
         
         message = self.message

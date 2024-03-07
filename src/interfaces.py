@@ -17,3 +17,7 @@ class EmbeddingFunctionInterface:
     def load(self, context: Context) -> bool:
         context.set_error("abstract interface used")
         return False
+    
+    def get_embedding(self, context: Context, text: str) -> list:
+        context.set_error("abstract interface used")
+        return None

@@ -33,3 +33,20 @@ class EmbeddingFunctionDefault(EmbeddingFunctionInterface):
     def unload(self) -> bool:
         self.emedding_function = None
         return True
+    
+    def get_embedding(self, context: Context, text: str) -> list:
+        if not self.emedding_function:
+            context.set_error(f"embedding function not available for {self.get_description()}")
+            return None
+        else:
+            try:
+                result = self.emedding_function([text])
+                if result:
+                    context.set_payload(result)
+                    return result
+                else:
+                    context.set_error("invalid embedding")
+                    return None            
+            except Exception as exc:
+                context.set_error(f"creating embedding failed: {exc}")
+                return None

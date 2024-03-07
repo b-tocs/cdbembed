@@ -67,7 +67,8 @@ class ServiceHandler:
 
     def unload_all(self, context: Context) -> True:
         count = 0
-        for model_id in self._model_cache.keys():
+        all_ids = self._model_cache.keys()
+        for model_id in all_ids:
             self.unload_model(context, "", "", model_id=model_id)
             count += 1
         context.set_success(f"{count} models unloaded")
@@ -80,6 +81,10 @@ class ServiceHandler:
                 context.set_error(f"invalid model type: {model_type}")
                 return False
             
+            # workaround swagger
+            if model_id == "string":
+                model_id = None
+
             # set embedding by type
             emb_function: EmbeddingFunctionInterface = None
             if model_type == "default":
@@ -102,6 +107,34 @@ class ServiceHandler:
 
         except Exception as exc:
             context.set_error(f"Error: {exc}")
+
+    def get_embedding(self, context: Context, text: str, model_type: str, model_name: str, model_id: str = None) -> bool:
+        try:
+            # get the model id and check if loaded
+            use_model_id = self.get_model_id(model_type=model_type, model_name=model_name, model_id=model_id)
+            if not self.is_model_loaded(context=context, model_name=model_name, model_type=model_type, model_id=use_model_id):
+                if not self.load_model(context=context, model_type=model_id, model_name=model_name, model_id=model_id):
+                    context.set_error("model not found")
+                    return False
+
+            # get embedding function
+            emb_function = self.get_embedding_function_by_id(use_model_id)
+            if not emb_function:
+                context.set_error("model function not found")
+                return False
+
+            # get embedding
+            result = emb_function.get_embedding(context=context, text=text)
+            if result and isinstance(result, list) and len(result) == 1:
+                context.set_payload(result[0])
+                return True
+            else:
+                context.set_error("invalid embedding detected")
+                return False
+
+        except Exception as exc:
+            context.set_error(f"Error: {exc}")
+
 
 
 class Factory:

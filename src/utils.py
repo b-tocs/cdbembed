@@ -11,6 +11,14 @@ class Context:
     def set_payload(self, payload):
         self.payload = payload
 
+    def is_payload(self) -> bool:
+        if self.payload is not None:
+            return True
+        else:
+            return False
+    def get_payload(self):
+        return self.payload
+
     def set_error(self, reason: str, status_code: int = 400):
         self.reason = reason
         self.status_code = status_code
